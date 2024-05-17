@@ -25,10 +25,34 @@ import torch.nn.functional as F
 from transformers import AutoProcessor, CLIPVisionModelWithProjection
 from transformers import CLIPTextModel, CLIPTokenizer
 
-VIT_PATH = "../checkpoints/clip-vit-large-patch14"
-VAE_PATH = "../checkpoints/ootd"
-UNET_PATH = "../checkpoints/ootd/ootd_hd/checkpoint-36000"
-MODEL_PATH = "../checkpoints/ootd"
+
+device_name = torch.cuda.get_device_name()
+if device_name == 'NVIDIA A10G':
+    # g5 instance
+    try:
+        import debugpy
+
+        debugpy.listen(5889)  # 5678 is port
+        print("Waiting for debugger attach")
+        debugpy.wait_for_client()
+        debugpy.breakpoint()
+        print('break on this line')
+    except:
+        print("non debug mode")
+    base_path = "/home/ubuntu/pytorch_gpu_base_ubuntu_uw2_workplace/aws-gcr-csdc-atl/aigc-vto-models/aigc-vto-models-ootd/reference/OOTDiffusion"
+    VIT_PATH = f"{base_path}/checkpoints/clip-vit-large-patch14"
+    VAE_PATH = f"{base_path}/checkpoints/ootd"
+    UNET_PATH = f"{base_path}/checkpoints/ootd/ootd_hd/checkpoint-36000"
+    MODEL_PATH = f"{base_path}/checkpoints/ootd"
+elif device_name == 'NVIDIA A100-SXM4-40GB':
+    # a100 instance
+    base_path = "/home/ec2-user/SageMaker/vto/OOTDiffusion"
+    VIT_PATH = f"{base_path}/checkpoints/clip-vit-large-patch14"
+    VAE_PATH = f"{base_path}/checkpoints/ootd"
+    UNET_PATH = f"{base_path}/checkpoints/ootd/ootd_hd/checkpoint-36000"
+    MODEL_PATH = f"{base_path}/checkpoints/ootd"
+else:
+    raise Exception("only for a10 and a100 instance")
 
 class OOTDiffusion:
 
