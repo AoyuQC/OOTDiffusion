@@ -89,6 +89,12 @@ if __name__ == '__main__':
     masked_vton_img = Image.composite(mask_gray, model_img, mask)
     masked_vton_img.save(f'{output_path}/images_output/mask.jpg')
 
+    # debug purpose
+    cloth_img.save(f'{output_path}/images_output/cloth_img.jpg')
+    model_img.save(f'{output_path}/images_output/model_img.jpg')
+    mask_gray.save(f'{output_path}/images_output/mask_gray.jpg')
+    mask.save(f'{output_path}/images_output/mask.jpg')
+
     images = model(
         model_type=model_type,
         category=category_dict[category],
