@@ -15,16 +15,16 @@ from ootd.inference_ootd_dc import OOTDiffusionDC
 device_name = torch.cuda.get_device_name()
 if device_name == 'NVIDIA A10G':
     # g5 instance
-    # try:
-    #     import debugpy
+    try:
+        import debugpy
 
-    #     debugpy.listen(5889)  # 5678 is port
-    #     print("Waiting for debugger attach")
-    #     debugpy.wait_for_client()
-    #     debugpy.breakpoint()
-    #     print('break on this line')
-    # except:
-    #     print("non debug mode")
+        debugpy.listen(5889)  # 5678 is port
+        print("Waiting for debugger attach")
+        debugpy.wait_for_client()
+        debugpy.breakpoint()
+        print('break on this line')
+    except:
+        print("non debug mode")
     output_path = "/home/ubuntu/pytorch_gpu_base_ubuntu_uw2_workplace/aws-gcr-csdc-atl/aigc-vto-models/aigc-vto-models-ootd/reference/OOTDiffusion/run"
 elif device_name == 'NVIDIA A100-SXM4-40GB':
     # a100 instance

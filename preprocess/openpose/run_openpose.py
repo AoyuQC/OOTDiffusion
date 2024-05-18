@@ -32,7 +32,7 @@ class OpenPose:
         torch.cuda.set_device(gpu_id)
         self.preprocessor = OpenposeDetector()
 
-    def __call__(self, input_image, resolution=384):
+    def __call__(self, input_image, resolution=384, save_image_file_name=None, save_json_file_name=None):
         torch.cuda.set_device(self.gpu_id)
         if isinstance(input_image, Image.Image):
             input_image = np.asarray(input_image)
@@ -68,12 +68,23 @@ class OpenPose:
                 candidate[i][1] *= 512
 
             keypoints = {"pose_keypoints_2d": candidate}
-            # with open("/home/aigc/ProjectVTON/OpenPose/keypoints/keypoints.json", "w") as f:
-            #     json.dump(keypoints, f)
-            #
-            # # print(candidate)
-            # output_image = cv2.resize(cv2.cvtColor(detected_map, cv2.COLOR_BGR2RGB), (768, 1024))
-            # cv2.imwrite('/home/aigc/ProjectVTON/OpenPose/keypoints/out_pose.jpg', output_image)
+
+            if save_json_file_name is not None and save_image_file_name is not None:
+                complete_dict = {}
+                new_keypoints_dict = {}
+                cand_points_list = []
+                for cand in candidate:
+                    cand_points_list.append(cand[0]*2)
+                    cand_points_list.append(cand[1]*2)
+                    cand_points_list.append(1)
+                new_keypoints_dict['pose_keypoints_2d'] = cand_points_list
+                complete_dict['people'] = [new_keypoints_dict]
+                with open(save_json_file_name, "w") as f:
+                    json.dump(complete_dict, f)
+                
+                # print(candidate)
+                output_image = cv2.resize(cv2.cvtColor(detected_map, cv2.COLOR_BGR2RGB), (768, 1024))
+                cv2.imwrite(save_image_file_name, output_image)
 
         return keypoints
 
