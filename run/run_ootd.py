@@ -24,6 +24,7 @@ output_path = "/home/ubuntu/pytorch_gpu_base_ubuntu_uw2_workplace/aws-gcr-csdc-a
 import argparse
 parser = argparse.ArgumentParser(description='run ootd')
 parser.add_argument('--gpu_id', '-g', type=int, default=0, required=False)
+parser.add_argument('--checkpoint_id', type=str, default="checkpoint-36000", required=False)
 parser.add_argument('--model_path', type=str, default="", required=True)
 parser.add_argument('--cloth_path', type=str, default="", required=True)
 parser.add_argument('--model_type', type=str, default="hd", required=False)
@@ -53,7 +54,7 @@ n_samples = args.sample
 seed = args.seed
 
 if model_type == "hd":
-    model = OOTDiffusionHD(args.gpu_id)
+    model = OOTDiffusionHD(args.gpu_id, args.checkpoint_id)
 elif model_type == "dc":
     model = OOTDiffusionDC(args.gpu_id)
 else:

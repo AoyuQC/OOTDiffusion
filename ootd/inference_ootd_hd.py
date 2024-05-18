@@ -32,7 +32,7 @@ MODEL_PATH = f"{base_path}ootd"
 
 class OOTDiffusionHD:
 
-    def __init__(self, gpu_id):
+    def __init__(self, gpu_id, checkpoint_id):
         self.gpu_id = 'cuda:' + str(gpu_id)
 
         vae = AutoencoderKL.from_pretrained(
@@ -41,14 +41,16 @@ class OOTDiffusionHD:
             torch_dtype=torch.float16,
         )
 
+        unet_path = f"{base_path}ootd/ootd_hd/{checkpoint_id}"
+
         unet_garm = UNetGarm2DConditionModel.from_pretrained(
-            UNET_PATH,
+            unet_path,
             subfolder="unet_garm",
             torch_dtype=torch.float16,
             use_safetensors=True,
         )
         unet_vton = UNetVton2DConditionModel.from_pretrained(
-            UNET_PATH,
+            unet_path,
             subfolder="unet_vton",
             torch_dtype=torch.float16,
             use_safetensors=True,
