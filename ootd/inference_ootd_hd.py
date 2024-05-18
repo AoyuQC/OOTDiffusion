@@ -24,7 +24,16 @@ import torch.nn.functional as F
 from transformers import AutoProcessor, CLIPVisionModelWithProjection
 from transformers import CLIPTextModel, CLIPTokenizer
 
-base_path = "/home/ubuntu/pytorch_gpu_base_ubuntu_uw2_workplace/aws-gcr-csdc-atl/aigc-vto-models/aigc-vto-models-ootd/reference/OOTDiffusion/checkpoints/"
+device_name = torch.cuda.get_device_name()
+if device_name == 'NVIDIA A10G':
+    # a10 instance
+    base_path = "/home/ubuntu/pytorch_gpu_base_ubuntu_uw2_workplace/aws-gcr-csdc-atl/aigc-vto-models/aigc-vto-models-ootd/reference/OOTDiffusion/checkpoints/"
+elif device_name == 'NVIDIA A100-SXM4-40GB':
+    # a100 instance
+    base_path = "/home/ec2-user/SageMaker/vto/OOTDiffusion/checkpoints"
+else:
+    raise Exception("only for a10 and a100 instance")
+
 VIT_PATH = f"{base_path}clip-vit-large-patch14"
 VAE_PATH = f"{base_path}ootd"
 UNET_PATH = f"{base_path}ootd/ootd_hd/checkpoint-36000"
