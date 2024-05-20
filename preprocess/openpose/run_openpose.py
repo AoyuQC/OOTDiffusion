@@ -74,8 +74,8 @@ class OpenPose:
                 new_keypoints_dict = {}
                 cand_points_list = []
                 for cand in candidate:
-                    cand_points_list.append(cand[0]*2)
-                    cand_points_list.append(cand[1]*2)
+                    cand_points_list.append(cand[0])
+                    cand_points_list.append(cand[1])
                     cand_points_list.append(1)
                 new_keypoints_dict['pose_keypoints_2d'] = cand_points_list
                 complete_dict['people'] = [new_keypoints_dict]
@@ -83,7 +83,7 @@ class OpenPose:
                     json.dump(complete_dict, f)
                 
                 # print(candidate)
-                output_image = cv2.resize(cv2.cvtColor(detected_map, cv2.COLOR_BGR2RGB), (768, 1024))
+                output_image = cv2.resize(cv2.cvtColor(detected_map, cv2.COLOR_BGR2RGB), (384, 512))
                 cv2.imwrite(save_image_file_name, output_image)
 
         return keypoints
