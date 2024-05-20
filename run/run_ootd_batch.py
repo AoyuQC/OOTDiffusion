@@ -80,55 +80,58 @@ else:
     raise ValueError("model_type must be \'hd\' or \'dc\'!")
 
 if __name__ == '__main__':
+    # mkdirs
+    txt_name = txt_file.split('/')[-1].split('.')[0]
+    complete_output_path = f'{output_path}/{checkpoint_id}_{txt_name}'
+    os.makedirs(complete_output_path, exist_ok=True)
 
     with open(txt_file, 'r') as file:
         # Read the file line by line
         for line in tqdm(file):
+            # check exists
             model_name = line.split(' ')[0]
             cloth_name = line.split(' ')[0]
+            save_name = model_name.split('.')[0]+'_'+cloth_name
 
-            cloth_path = f"{base_path}/cloth/{cloth_name}" 
-            model_path = f"{base_path}/image/{model_name}"
+            if os.path.isfile(f"{complete_output_path}/{save_name}"):
+                print(f"{save_name} exists. Bypassing logic...")
+                continue
+            else:
+                print(f"{save_name} to be processed...")
+                try:
+                    cloth_path = f"{base_path}/cloth/{cloth_name}" 
+                    model_path = f"{base_path}/image/{model_name}"
 
-            if model_type == 'hd' and category != 0:
-                raise ValueError("model_type \'hd\' requires category == 0 (upperbody)!")
+                    if model_type == 'hd' and category != 0:
+                        raise ValueError("model_type \'hd\' requires category == 0 (upperbody)!")
 
-            cloth_img = Image.open(cloth_path).resize((768, 1024))
-            model_img = Image.open(model_path).resize((768, 1024))
-            keypoints = openpose_model(model_img.resize((384, 512)))
-            model_parse, _ = parsing_model(model_img.resize((384, 512)))
+                    cloth_img = Image.open(cloth_path).resize((768, 1024))
+                    model_img = Image.open(model_path).resize((768, 1024))
+                    keypoints = openpose_model(model_img.resize((384, 512)))
+                    model_parse, _ = parsing_model(model_img.resize((384, 512)))
 
-            mask, mask_gray = get_mask_location(model_type, category_dict_utils[category], model_parse, keypoints)
-            mask = mask.resize((768, 1024), Image.NEAREST)
-            mask_gray = mask_gray.resize((768, 1024), Image.NEAREST)
-            
-            masked_vton_img = Image.composite(mask_gray, model_img, mask)
-            # mkdirs
-            complete_output_path = f'{output_path}/images_output_{checkpoint_id}'
-            os.makedirs(complete_output_path, exist_ok=True)
-            
-            masked_vton_img.save(f'{complete_output_path}/mask.jpg')
+                    mask, mask_gray = get_mask_location(model_type, category_dict_utils[category], model_parse, keypoints)
+                    mask = mask.resize((768, 1024), Image.NEAREST)
+                    mask_gray = mask_gray.resize((768, 1024), Image.NEAREST)
 
-            # debug purpose
-            cloth_img.save(f'{complete_output_path}/cloth_img.jpg')
-            model_img.save(f'{complete_output_path}/model_img.jpg')
-            mask_gray.save(f'{complete_output_path}/mask_gray.jpg')
-            mask.save(f'{complete_output_path}/mask.jpg')
+                    masked_vton_img = Image.composite(mask_gray, model_img, mask)
 
-            images = model(
-                model_type=model_type,
-                category=category_dict[category],
-                image_garm=cloth_img,
-                image_vton=masked_vton_img,
-                mask=mask,
-                image_ori=model_img,
-                num_samples=n_samples,
-                num_steps=n_steps,
-                image_scale=image_scale,
-                seed=seed,
-            )
-            image_idx = 0
-            for image in images:
-                save_name = model_name.split('.')[0]+'_'+cloth_name
-                image.save(f'{complete_output_path}/{save_name}')
-                image_idx += 1
+                    images = model(
+                        model_type=model_type,
+                        category=category_dict[category],
+                        image_garm=cloth_img,
+                        image_vton=masked_vton_img,
+                        mask=mask,
+                        image_ori=model_img,
+                        num_samples=n_samples,
+                        num_steps=n_steps,
+                        image_scale=image_scale,
+                        seed=seed,
+                    )
+                    image_idx = 0
+                    for image in images:
+                        save_name = model_name.split('.')[0]+'_'+cloth_name
+                        image.save(f'{complete_output_path}/{save_name}')
+                        image_idx += 1
+                except:
+                    print(f"by pass {save_name} ...")

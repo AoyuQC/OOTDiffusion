@@ -6,9 +6,10 @@ echo "GPU name: $gpu_info"
 if [[ "$gpu_info" == *"A100"* ]]; then
     echo "The GPU is an A100 GPU."
     python /home/ec2-user/SageMaker/vto/OOTDiffusion/run/run_ootd_batch.py --base_path /home/ec2-user/SageMaker/data/dataset/vto/shenin/shein_data \
-        --txt_file /home/ec2-user/SageMaker/data/dataset/vto/shenin/test_pairs_shein.txt \
+        --txt_file /home/ec2-user/SageMaker/data/dataset/vto/shenin/remaining_test_pairs_shein.txt \
         --scale 4.0 \
-        --checkpoint_id checkpoint-epoch39 \
+        --checkpoint_id checkpoint-36000 \
+	--gpu_id 1 \
         --sample 1
 elif [[ "$gpu_info" == *"A10"* ]]; then
     echo "The GPU is an A10 GPU."
