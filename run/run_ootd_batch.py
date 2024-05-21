@@ -5,6 +5,7 @@ import torch
 from PIL import Image
 from utils_ootd import get_mask_location
 from tqdm import tqdm
+import random
 
 PROJECT_ROOT = Path(__file__).absolute().parents[1].absolute()
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -49,6 +50,7 @@ parser.add_argument('--scale', type=float, default=2.0, required=False)
 parser.add_argument('--step', type=int, default=20, required=False)
 parser.add_argument('--sample', type=int, default=4, required=False)
 parser.add_argument('--seed', type=int, default=-1, required=False)
+parser.add_argument('--unpair_seed', type=int, default=0, required=False)
 args = parser.parse_args()
 
 
@@ -71,6 +73,7 @@ image_scale = args.scale
 n_steps = args.step
 n_samples = args.sample
 seed = args.seed
+unpair_seed = args.unpair_seed
 
 if model_type == "hd":
     model = OOTDiffusionHD(args.gpu_id, args.checkpoint_id)
@@ -82,56 +85,75 @@ else:
 if __name__ == '__main__':
     # mkdirs
     txt_name = txt_file.split('/')[-1].split('.')[0]
-    complete_output_path = f'{output_path}/{checkpoint_id}_{txt_name}'
+    
+    if unpair_seed != 0:
+        complete_output_path = f'unpair_seed{unpair_seed}_{output_path}/{checkpoint_id}_{txt_name}'
+    else:
+        complete_output_path = f'{output_path}/{checkpoint_id}_{txt_name}'
+
     os.makedirs(complete_output_path, exist_ok=True)
 
+    model_name_lists = []
+    cloth_name_lists = []
     with open(txt_file, 'r') as file:
         # Read the file line by line
         for line in tqdm(file):
             # check exists
             model_name = line.split(' ')[0]
             cloth_name = line.split(' ')[0]
-            save_name = model_name.split('.')[0]+'_'+cloth_name
+            model_name_lists.append(model_name)
+            cloth_name_lists.append(cloth_name)
+    
+    if unpair_seed != 0:
+        random.seed(unpair_seed)
+        # Shuffle the list using the seed value
+        cloth_name_lists = random.sample(cloth_name_lists, len(cloth_name_lists))
 
-            if os.path.isfile(f"{complete_output_path}/{save_name}"):
-                print(f"{save_name} exists. Bypassing logic...")
-                continue
-            else:
-                print(f"{save_name} to be processed...")
-                try:
-                    cloth_path = f"{base_path}/cloth/{cloth_name}" 
-                    model_path = f"{base_path}/image/{model_name}"
+    for model_name, cloth_name in zip(model_name_lists, cloth_name_lists):
+        # check exists
+        model_name = line.split(' ')[0]
+        cloth_name = line.split(' ')[0]
+        save_name = model_name.split('.')[0]+'_'+cloth_name
 
-                    if model_type == 'hd' and category != 0:
-                        raise ValueError("model_type \'hd\' requires category == 0 (upperbody)!")
+        if os.path.isfile(f"{complete_output_path}/{save_name}"):
+            print(f"{save_name} exists. Bypassing logic...")
+            continue
+        else:
+            print(f"{save_name} to be processed...")
+            try:
+                cloth_path = f"{base_path}/cloth/{cloth_name}" 
+                model_path = f"{base_path}/image/{model_name}"
 
-                    cloth_img = Image.open(cloth_path).resize((768, 1024))
-                    model_img = Image.open(model_path).resize((768, 1024))
-                    keypoints = openpose_model(model_img.resize((384, 512)))
-                    model_parse, _ = parsing_model(model_img.resize((384, 512)))
+                if model_type == 'hd' and category != 0:
+                    raise ValueError("model_type \'hd\' requires category == 0 (upperbody)!")
 
-                    mask, mask_gray = get_mask_location(model_type, category_dict_utils[category], model_parse, keypoints)
-                    mask = mask.resize((768, 1024), Image.NEAREST)
-                    mask_gray = mask_gray.resize((768, 1024), Image.NEAREST)
+                cloth_img = Image.open(cloth_path).resize((768, 1024))
+                model_img = Image.open(model_path).resize((768, 1024))
+                keypoints = openpose_model(model_img.resize((384, 512)))
+                model_parse, _ = parsing_model(model_img.resize((384, 512)))
 
-                    masked_vton_img = Image.composite(mask_gray, model_img, mask)
+                mask, mask_gray = get_mask_location(model_type, category_dict_utils[category], model_parse, keypoints)
+                mask = mask.resize((768, 1024), Image.NEAREST)
+                mask_gray = mask_gray.resize((768, 1024), Image.NEAREST)
 
-                    images = model(
-                        model_type=model_type,
-                        category=category_dict[category],
-                        image_garm=cloth_img,
-                        image_vton=masked_vton_img,
-                        mask=mask,
-                        image_ori=model_img,
-                        num_samples=n_samples,
-                        num_steps=n_steps,
-                        image_scale=image_scale,
-                        seed=seed,
-                    )
-                    image_idx = 0
-                    for image in images:
-                        save_name = model_name.split('.')[0]+'_'+cloth_name
-                        image.save(f'{complete_output_path}/{save_name}')
-                        image_idx += 1
-                except:
-                    print(f"by pass {save_name} ...")
+                masked_vton_img = Image.composite(mask_gray, model_img, mask)
+
+                images = model(
+                    model_type=model_type,
+                    category=category_dict[category],
+                    image_garm=cloth_img,
+                    image_vton=masked_vton_img,
+                    mask=mask,
+                    image_ori=model_img,
+                    num_samples=n_samples,
+                    num_steps=n_steps,
+                    image_scale=image_scale,
+                    seed=seed,
+                )
+                image_idx = 0
+                for image in images:
+                    save_name = model_name.split('.')[0]+'_'+cloth_name
+                    image.save(f'{complete_output_path}/{save_name}')
+                    image_idx += 1
+            except:
+                print(f"by pass {save_name} ...")
