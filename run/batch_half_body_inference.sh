@@ -12,6 +12,7 @@ if [[ "$gpu_info" == *"A100"* ]]; then
         --scale 4.0 \
         --checkpoint_id $checkpoint_id \
         --gpu_id $gpu_id \
+        --unpair_seed 800 \
         --sample 1
 elif [[ "$gpu_info" == *"A10"* ]]; then
     echo "The GPU is an A10 GPU."

@@ -75,6 +75,7 @@ n_samples = args.sample
 seed = args.seed
 unpair_seed = args.unpair_seed
 
+
 if model_type == "hd":
     model = OOTDiffusionHD(args.gpu_id, args.checkpoint_id)
 elif model_type == "dc":
@@ -86,8 +87,9 @@ if __name__ == '__main__':
     # mkdirs
     txt_name = txt_file.split('/')[-1].split('.')[0]
     
+    print(unpair_seed)
     if unpair_seed != 0:
-        complete_output_path = f'unpair_seed{unpair_seed}_{output_path}/{checkpoint_id}_{txt_name}'
+        complete_output_path = f'{output_path}/unpair_seed{unpair_seed}_{checkpoint_id}_{txt_name}'
     else:
         complete_output_path = f'{output_path}/{checkpoint_id}_{txt_name}'
 
@@ -100,19 +102,17 @@ if __name__ == '__main__':
         for line in tqdm(file):
             # check exists
             model_name = line.split(' ')[0]
-            cloth_name = line.split(' ')[0]
+            cloth_name = line.split(' ')[1]
             model_name_lists.append(model_name)
             cloth_name_lists.append(cloth_name)
     
     if unpair_seed != 0:
         random.seed(unpair_seed)
         # Shuffle the list using the seed value
-        cloth_name_lists = random.sample(cloth_name_lists, len(cloth_name_lists))
+        random.shuffle(cloth_name_lists)
 
     for model_name, cloth_name in zip(model_name_lists, cloth_name_lists):
         # check exists
-        model_name = line.split(' ')[0]
-        cloth_name = line.split(' ')[0]
         save_name = model_name.split('.')[0]+'_'+cloth_name
 
         if os.path.isfile(f"{complete_output_path}/{save_name}"):

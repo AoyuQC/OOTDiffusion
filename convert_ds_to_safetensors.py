@@ -1,7 +1,7 @@
 import torch
 
 device_name = torch.cuda.get_device_name()
-epoch_num = 0
+epoch_num = 40
 if device_name == 'NVIDIA A10G':
     try:
         import debugpy
