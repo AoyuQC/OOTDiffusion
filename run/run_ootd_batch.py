@@ -101,8 +101,8 @@ if __name__ == '__main__':
         # Read the file line by line
         for line in tqdm(file):
             # check exists
-            model_name = line.split(' ')[0]
-            cloth_name = line.split(' ')[1]
+            model_name = line.strip().split(' ')[0]
+            cloth_name = line.strip().split(' ')[1]
             model_name_lists.append(model_name)
             cloth_name_lists.append(cloth_name)
     
@@ -155,5 +155,5 @@ if __name__ == '__main__':
                     save_name = model_name.split('.')[0]+'_'+cloth_name
                     image.save(f'{complete_output_path}/{save_name}')
                     image_idx += 1
-            except:
-                print(f"by pass {save_name} ...")
+            except Exception as e:
+                print(f"by pass {save_name} ... with error message \n {e}")
